@@ -1,7 +1,9 @@
-import { ChromaClient } from "chromadb";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { embeddings } from "./embed";
 
-export const chromaClient = new ChromaClient({
-  host: "localhost",
-  port: 8000,
-});
-chromaClient.heartbeat();
+export async function getOrCreateVectorStore(examId: string) {
+  return await Chroma.fromExistingCollection(embeddings, {
+    collectionName: examId,
+    url: "http://localhost:8000",
+  });
+}

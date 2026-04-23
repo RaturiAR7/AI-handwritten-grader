@@ -1,13 +1,6 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
-
-export async function createEmbedding(text: string): Promise<number[]> {
-  const model = genAI.getGenerativeModel({
-    model: "gemini-embedding-001",
-  });
-
-  const result = await model.embedContent(text);
-
-  return result.embedding.values;
-}
+export const embeddings = new GoogleGenerativeAIEmbeddings({
+  apiKey: process.env.GOOGLE_API_KEY!,
+  modelName: "gemini-embedding-001",
+});

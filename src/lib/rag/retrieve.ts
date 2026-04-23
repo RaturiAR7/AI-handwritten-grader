@@ -1,20 +1,15 @@
-import { chromaClient } from "./chroma";
+import { ChromaClient } from "chromadb";
 
 export async function getAnswerByQuestionId(
   examId: string,
   questionId: string,
 ) {
-  try {
-    const collection = await chromaClient.getOrCreateCollection({
-      name: examId,
-    });
+  const client = new ChromaClient({ host: "localhost", port: 8000 });
+  const col = await client.getCollection({ name: examId });
 
-    const result = await collection.get({
-      ids: [`${examId}-Q${questionId}`],
-    });
-    return result.documents?.[0] || null;
-  } catch (error) {
-    console.error("Error retrieving answer:", error);
-    throw error;
-  }
+  const result = await col.get({
+    where: { questionId: `Q${questionId}` }, // filter by metadata
+  });
+
+  return result.documents?.[0] || null;
 }

@@ -1,43 +1,28 @@
-import { createEmbedding } from "./embed";
-import { chromaClient } from "./chroma";
+import { Document } from "@langchain/core/documents";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { embeddings } from "./embed";
 import { extractQA } from "./extractQA";
 
 export async function processAndStoreExam(examId: string, text: string) {
-  try {
-    const collection = await chromaClient.getOrCreateCollection({
-      name: examId,
-    });
-    const qaPairs = extractQA(text);
-    console.log("QA pairs count:", qaPairs.length); // Is this 0?
-    const ids: string[] = [];
-    const embeddings: number[][] = [];
-    const documents: string[] = [];
-    const metadatas: any[] = [];
+  const qaPairs = extractQA(text);
 
-    for (const item of qaPairs) {
-      const embedding = await createEmbedding(item.answer);
-
-      ids.push(`${examId}-${item.questionId}`);
-      embeddings.push(embedding);
-      documents.push(item.answer);
-
-      metadatas.push({
-        examId,
-        questionId: item.questionId,
-      });
-    }
-    if (!ids.length) {
-      throw new Error("No Q/A pairs extracted from PDF");
-    }
-
-    await collection.add({
-      ids,
-      embeddings,
-      documents,
-      metadatas,
-    });
-  } catch (error) {
-    console.error("Error processing exam:", error);
-    throw error;
+  if (!qaPairs.length) {
+    throw new Error("No Q/A pairs extracted from PDF");
   }
+
+  const docs = qaPairs
+    .filter((item) => item.answer?.trim().length > 0)
+    .map(
+      (item) =>
+        new Document({
+          pageContent: item.answer.trim(),
+          metadata: { examId, questionId: item.questionId },
+        }),
+    );
+
+  await Chroma.fromDocuments(docs, embeddings, {
+    collectionName: examId,
+    url: "http://localhost:8000",
+    collectionMetadata: { "hnsw:space": "cosine" },
+  });
 }
