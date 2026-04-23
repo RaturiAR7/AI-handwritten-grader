@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { visionNode } from "@/lib/rag/visionNode"
+import { visionNode } from "@/lib/evaluation/visionNode"
 import { getAnswerByQuestionId } from "@/lib/rag/retrieve";
-import { graderNode } from "@/lib/rag/graderNode";
+import { graderNode } from "@/lib/evaluation/graderNode";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
