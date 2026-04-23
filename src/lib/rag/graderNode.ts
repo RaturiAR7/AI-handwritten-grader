@@ -17,7 +17,9 @@ export async function graderNode(
     correctAnswer: string | null;
   }[],
 ): Promise<GradeResult[]> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({
+    model: "gemini-3.1-flash-lite-preview",
+  });
 
   const context = ragResults
     .map(
