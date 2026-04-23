@@ -1,11 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ExtractedAnswer } from "@/constants/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-
-export interface ExtractedAnswer {
-  questionId: string;
-  studentAnswer: string;
-}
 
 export async function visionNode(
   imageBase64: string,

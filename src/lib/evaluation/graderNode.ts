@@ -1,21 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GradeResult, graderNodeParams } from "@/constants/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
-export interface GradeResult {
-  questionId: string;
-  studentAnswer: string;
-  correctAnswer: string;
-  score: number;
-  feedback: string;
-}
-
 export async function graderNode(
-  ragResults: {
-    questionId: string;
-    studentAnswer: string;
-    correctAnswer: string | null;
-  }[],
+  ragResults: graderNodeParams[],
 ): Promise<GradeResult[]> {
   const model = genAI.getGenerativeModel({
     model: "gemini-3.1-flash-lite-preview",
