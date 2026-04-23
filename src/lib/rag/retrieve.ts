@@ -1,22 +1,20 @@
-import { chroma } from "./chroma";
-import { createEmbedding } from "./embed";
+import { chromaClient } from "./chroma";
 
-export async function retrieveFromChroma(examId: string, query: string, k = 3) {
+export async function getAnswerByQuestionId(
+  examId: string,
+  questionId: string,
+) {
   try {
-    const collection = await chroma.getOrCreateCollection({
+    const collection = await chromaClient.getOrCreateCollection({
       name: examId,
     });
 
-    const queryEmbedding = await createEmbedding(query);
-
-    const result = await collection.query({
-      queryEmbeddings: [queryEmbedding],
-      nResults: k,
+    const result = await collection.get({
+      ids: [`${examId}-Q${questionId}`],
     });
-
-    return result.documents?.[0] || [];
+    return result.documents?.[0] || null;
   } catch (error) {
-    console.error("Error retrieving from Chroma:", error);
+    console.error("Error retrieving answer:", error);
     throw error;
   }
 }

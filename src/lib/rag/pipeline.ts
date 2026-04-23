@@ -1,27 +1,33 @@
-import { chunkText } from "./chunk";
 import { createEmbedding } from "./embed";
-import { chroma } from "./chroma";
+import { chromaClient } from "./chroma";
+import { extractQA } from "./extractQA";
 
 export async function processAndStoreExam(examId: string, text: string) {
   try {
-    const collection = await chroma.getOrCreateCollection({
+    const collection = await chromaClient.getOrCreateCollection({
       name: examId,
     });
-
-    const chunks = chunkText(text);
-
+    const qaPairs = extractQA(text);
+    console.log("QA pairs count:", qaPairs.length); // Is this 0?
     const ids: string[] = [];
     const embeddings: number[][] = [];
     const documents: string[] = [];
     const metadatas: any[] = [];
 
-    for (let i = 0; i < chunks.length; i++) {
-      const embedding = await createEmbedding(chunks[i]);
+    for (const item of qaPairs) {
+      const embedding = await createEmbedding(item.answer);
 
-      ids.push(`${examId}-${i}`);
+      ids.push(`${examId}-${item.questionId}`);
       embeddings.push(embedding);
-      documents.push(chunks[i]);
-      metadatas.push({ index: i });
+      documents.push(item.answer);
+
+      metadatas.push({
+        examId,
+        questionId: item.questionId,
+      });
+    }
+    if (!ids.length) {
+      throw new Error("No Q/A pairs extracted from PDF");
     }
 
     await collection.add({
@@ -31,7 +37,7 @@ export async function processAndStoreExam(examId: string, text: string) {
       metadatas,
     });
   } catch (error) {
-    console.error("Error processing and storing exam:", error);
+    console.error("Error processing exam:", error);
     throw error;
   }
 }
