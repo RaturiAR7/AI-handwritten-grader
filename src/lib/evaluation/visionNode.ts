@@ -13,11 +13,11 @@ export async function visionNode(
 
   const prompt = `
     You are analyzing a handwritten exam answer sheet.
-    Extract all question numbers and their corresponding answers.
+    Extract all question numbers, their corresponding answers, and the question text if it is present.
     Return ONLY a JSON array in this exact format, nothing else:
     [
-      { "questionId": "Q1", "studentAnswer": "answer text here" },
-      { "questionId": "Q2", "studentAnswer": "answer text here" }
+      { "questionId": "Q1", "studentAnswer": "answer text here", "questionText": "question text if present, otherwise omit" },
+      { "questionId": "Q2", "studentAnswer": "answer text here", "questionText": "question text if present, otherwise omit" }
     ]
     If an answer is blank or illegible, use an empty string for studentAnswer.
   `;

@@ -9,7 +9,9 @@ export default function Home() {
   const models = [
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
-    "gemini-3.1-flash-lite"
+    "gemini-3.1-flash-lite",
+    "gemini-3.1-flash-lite-preview",
+    "gemma-3-27b-it"
   ];
 
   // Answer Key (PDF) State

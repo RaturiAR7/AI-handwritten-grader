@@ -28,9 +28,12 @@ export async function POST(req: NextRequest) {
       extracted.map(async (item) => ({
         questionId: item.questionId,
         studentAnswer: item.studentAnswer,
+        questionText: item.questionText,
         correctAnswer: await getAnswerByQuestionId(
           examId,
           item.questionId.replace("Q", ""),
+          item.studentAnswer,
+          item.questionText
         ),
       })),
     );

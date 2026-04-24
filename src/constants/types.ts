@@ -1,6 +1,7 @@
 export interface ExtractedAnswer {
   questionId: string;
   studentAnswer: string;
+  questionText?: string;
 }
 
 export interface GradeResult {
@@ -15,4 +16,5 @@ export interface graderNodeParams {
   questionId: string;
   studentAnswer: string;
   correctAnswer: string | null;
+  questionText?: string;
 }

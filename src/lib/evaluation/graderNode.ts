@@ -15,7 +15,8 @@ export async function graderNode(
     .map(
       (item) => `
       Question ID: ${item.questionId}
-      Correct Answer: ${item.correctAnswer ?? "N/A"}
+      Question Text: ${item.questionText ?? "N/A"}
+      Correct Answer (or Context from Text): ${item.correctAnswer ?? "N/A"}
       Student Answer: ${item.studentAnswer}
     `,
     )
