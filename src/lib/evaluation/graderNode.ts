@@ -5,9 +5,10 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
 export async function graderNode(
   ragResults: graderNodeParams[],
+  modelName: string = "gemini-1.5-flash"
 ): Promise<GradeResult[]> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-3.1-flash-lite-preview",
+    model: modelName,
   });
 
   const context = ragResults

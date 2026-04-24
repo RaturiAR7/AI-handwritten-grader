@@ -5,9 +5,10 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
 export async function visionNode(
   imageBase64: string,
+  modelName: string = "gemini-1.5-flash"
 ): Promise<ExtractedAnswer[]> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-3.1-flash-lite-preview",
+    model: modelName,
   });
 
   const prompt = `

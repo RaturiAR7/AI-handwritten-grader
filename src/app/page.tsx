@@ -5,6 +5,13 @@ import { useState } from "react";
 export default function Home() {
   const [examId, setExamId] = useState(`EXAM-${Math.floor(Math.random() * 10000)}`);
 
+  const [evalModel, setEvalModel] = useState("gemini-2.5-flash");
+  const models = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-3.1-flash-lite"
+  ];
+
   // Answer Key (PDF) State
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isUploadingPdf, setIsUploadingPdf] = useState(false);
@@ -54,6 +61,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append("image", imageFile);
       formData.append("examId", examId);
+      formData.append("model", evalModel);
 
       const res = await fetch("/api/grade", {
         method: "POST",
@@ -96,14 +104,14 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          
+
           {/* Column 1: Knowledge Base Upload */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex flex-col h-full transform transition duration-200 hover:shadow-md">
             <div className="mb-6">
               <h2 className="text-2xl font-semibold mb-2">1. Upload Answer Key</h2>
               <p className="text-gray-500 text-sm">Upload a master PDF document containing the correct answers to prepare the grading engine.</p>
             </div>
-            
+
             <div className="flex-1 flex flex-col justify-center">
               <label className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition mb-6">
                 <svg className="w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -139,8 +147,21 @@ export default function Home() {
             </div>
 
             <div className="flex-1 flex flex-col justify-center">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Evaluation Model (LLM)</label>
+                <select
+                  value={evalModel}
+                  onChange={(e) => setEvalModel(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                >
+                  {models.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
               <label className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-indigo-400 transition mb-6">
-                 <svg className="w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <svg className="w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <span className="text-sm font-medium text-gray-600">{imageFile ? imageFile.name : "Click to select Exam Image"}</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
               </label>
@@ -187,9 +208,8 @@ export default function Home() {
                     <span className="text-gray-400 text-2xl">/{gradeResult.maxScore}</span>
                   </p>
                 </div>
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center border-4 ${
-                  Number(gradeResult.percentage) >= 70 ? 'border-green-500 bg-green-50 text-green-700' : 'border-orange-500 bg-orange-50 text-orange-700'
-                }`}>
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center border-4 ${Number(gradeResult.percentage) >= 70 ? 'border-green-500 bg-green-50 text-green-700' : 'border-orange-500 bg-orange-50 text-orange-700'
+                  }`}>
                   <span className="text-xl font-bold">{gradeResult.percentage}%</span>
                 </div>
               </div>
@@ -210,7 +230,7 @@ export default function Home() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 text-sm">
                       <div className="bg-gray-50 border border-gray-100 p-4 rounded-lg">
                         <p className="text-gray-500 font-medium mb-1 text-xs uppercase tracking-wider">Student's Answer</p>
@@ -221,7 +241,7 @@ export default function Home() {
                         <p className="text-blue-900">{item.correctAnswer}</p>
                       </div>
                     </div>
-                    
+
                     <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg">
                       <p className="text-indigo-800 text-sm"><strong>Feedback:</strong> {item.feedback}</p>
                     </div>
