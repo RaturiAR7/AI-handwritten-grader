@@ -1,5 +1,5 @@
 export const VISION_PROMPT = `
-    You are analyzing a handwritten exam answer sheet.
+    You are analyzing one or more pages of a handwritten exam answer sheet.
     Extract all question numbers, their corresponding answers, and the question text if it is present.
     Return ONLY a JSON array in this exact format, nothing else:
     [

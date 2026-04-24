@@ -4,7 +4,7 @@ import { ExtractedAnswer, VISION_PROMPT } from "@/constants/index";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
 export async function visionNode(
-  imageBase64: string,
+  imagesBase64: string[],
   modelName: string = "gemini-1.5-flash"
 ): Promise<ExtractedAnswer[]> {
   const model = genAI.getGenerativeModel({
@@ -13,14 +13,16 @@ export async function visionNode(
 
   const prompt = VISION_PROMPT;
 
+  const imageParts = imagesBase64.map((base64) => ({
+    inlineData: {
+      mimeType: "image/jpeg",
+      data: base64,
+    },
+  }));
+
   const result = await model.generateContent([
     prompt,
-    {
-      inlineData: {
-        mimeType: "image/jpeg",
-        data: imageBase64,
-      },
-    },
+    ...imageParts
   ]);
 
   const text = result.response.text();

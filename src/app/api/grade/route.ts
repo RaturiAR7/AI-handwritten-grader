@@ -5,23 +5,27 @@ import { graderNode } from "@/lib/evaluation/graderNode";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
-  const image = formData.get("image") as File;
+  const images = formData.getAll("images") as File[];
   const examId = formData.get("examId") as string;
   const modelName = (formData.get("model") as string) || "gemini-1.5-flash";
 
-  if (!image || !examId) {
+  if (!images || images.length === 0 || !examId) {
     return NextResponse.json(
-      { error: "image and examId required" },
+      { error: "images and examId required" },
       { status: 400 },
     );
   }
 
   try {
-    const bytes = await image.arrayBuffer();
-    const base64 = Buffer.from(bytes).toString("base64");
+    const base64Images = await Promise.all(
+      images.map(async (img) => {
+        const bytes = await img.arrayBuffer();
+        return Buffer.from(bytes).toString("base64");
+      })
+    );
 
     // Step 1 - vision
-    const extracted = await visionNode(base64, modelName);
+    const extracted = await visionNode(base64Images, modelName);
 
     // Step 2 - fetch correct answers
     const ragResults = await Promise.all(
