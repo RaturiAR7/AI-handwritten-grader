@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GradeResult, graderNodeParams } from "@/constants/types";
+import { GRADER_PROMPT, GradeResult, graderNodeParams } from "@/constants/index";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
@@ -22,24 +22,7 @@ export async function graderNode(
     )
     .join("\n---\n");
 
-  const prompt = `
-    You are a strict but fair exam grader.
-    Grade each question below from 0 to 10 based on:
-    - Accuracy (is the core answer correct?)
-    - Completeness (did they cover all key points?)
-    - Allow for minor spelling/phrasing differences
-
-    ${context}
-
-    Return ONLY a JSON array, nothing else:
-    [
-      {
-        "questionId": "Q1",
-        "score": <number 0-10>,
-        "feedback": "<one sentence explanation>"
-      }
-    ]
-  `;
+  const prompt = `${GRADER_PROMPT}${context}`;
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
