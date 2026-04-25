@@ -1,21 +1,32 @@
 import { Document } from "@langchain/core/documents";
-import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
+import { ChromaClient } from "chromadb";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { embeddings } from "./embed";
+import { embedder } from "./embed";
 import { extractQA } from "./extractQA";
 
-// In-memory store persists during server lifetime
+function sanitizeMetadata(
+  metadata: Record<string, any>,
+): Record<string, string | number | boolean> {
+  const result: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(metadata)) {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
 
-const g = global as any;
-if (!g.vectorStores) g.vectorStores = {};
-const vectorStores = g.vectorStores;
 export async function processAndStoreExam(examId: string, text: string) {
   try {
-    let qaPairs = extractQA(text); // removed qaPairs = []
+    const qaPairs = extractQA(text); // no qaPairs = []
     let docs: Document[] = [];
-    qaPairs = [];
+
     if (qaPairs.length > 0) {
-      console.log("Using Q/A pairs:", qaPairs.length);
+      console.log("Q/A pairs:", qaPairs.length);
       docs = qaPairs
         .filter((item) => item.answer?.trim().length > 0)
         .map(
@@ -26,7 +37,7 @@ export async function processAndStoreExam(examId: string, text: string) {
             }),
         );
     } else {
-      console.log("Fallback: chunking document");
+      console.log("Fall Back Used");
       const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 200,
@@ -35,16 +46,27 @@ export async function processAndStoreExam(examId: string, text: string) {
       docs = docs.filter((d) => d.pageContent.trim().length > 0);
     }
 
-    vectorStores[examId] = await MemoryVectorStore.fromDocuments(
-      docs,
-      embeddings,
-    );
-    console.log("✅ Stored in memory:", docs.length, "documents");
+    const finalDocs = docs.map((d) => d.pageContent);
+    const embeddingVectors = await embedder.embedDocuments(finalDocs);
+    console.log("Vector count:", embeddingVectors.length);
+    console.log("Vector dim:", embeddingVectors[0]?.length);
+
+    // Store in ChromaDB
+    const client = new ChromaClient({ host: "localhost", port: 8000 });
+    try {
+      await client.deleteCollection({ name: examId });
+    } catch (_) {}
+    const collection = await client.createCollection({ name: examId });
+
+    await collection.add({
+      ids: docs.map((_, i) => `${examId}-${i}`),
+      embeddings: embeddingVectors,
+      documents: finalDocs,
+      metadatas: docs.map((d) => sanitizeMetadata(d.metadata)),
+    });
+
+    console.log("Stored:", await collection.count());
   } catch (error) {
     console.log(error);
   }
-}
-
-export function getVectorStore(examId: string): MemoryVectorStore | null {
-  return vectorStores[examId] || null;
 }
