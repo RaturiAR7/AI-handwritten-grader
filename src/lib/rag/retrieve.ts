@@ -1,41 +1,33 @@
-import { ChromaClient } from "chromadb";
-import { embeddings } from "./embed";
+import { getVectorStore } from "./pipeline";
 
 export async function getAnswerByQuestionId(
   examId: string,
   questionId: string,
   studentAnswer: string = "",
-  questionText: string = ""
+  questionText: string = "",
 ) {
-  const client = new ChromaClient({ host: "localhost", port: 8000 });
-  
   try {
-    const col = await client.getCollection({ name: examId });
+    const vectorStore = getVectorStore(examId);
 
-    // 1. Try exact metadata match first
-    const result = await col.get({
-      where: { questionId: `Q${questionId}` }, // filter by metadata
-    });
-
-    if (result.documents && result.documents.length > 0 && result.documents[0]) {
-      return result.documents[0];
+    if (!vectorStore) {
+      throw new Error(`No vector store found for examId: ${examId}`);
     }
 
-    // 2. Fallback to semantic search if exact match fails
-    console.log("Used Fallback");
-    const searchQuery = questionText.trim() || studentAnswer.trim();
-    console.log(searchQuery)
-    if (searchQuery) {
-      const queryEmbedding = await embeddings.embedQuery(searchQuery);
-      const searchResult = await col.query({
-        queryEmbeddings: [queryEmbedding],
-        nResults: 2,
-      });
+    // 1. Try exact metadata match first
+    const allDocs = await vectorStore.similaritySearch("test", 100);
+    const exact = allDocs.find(
+      (d) => d.metadata.questionId === `Q${questionId}`,
+    );
+    if (exact) return exact.pageContent;
 
-      if (searchResult.documents && searchResult.documents.length > 0 && searchResult.documents[0].length > 0) {
-        // Return top matches joined together as context
-        return searchResult.documents[0].join("\n");
-      }
+    // 2. Fallback to semantic search
+    console.log("Used semantic fallback");
+    const searchQuery = questionText.trim() || studentAnswer.trim();
+    console.log("Search query:", searchQuery);
+
+    if (searchQuery) {
+      const results = await vectorStore.similaritySearch(searchQuery, 2);
+      return results.map((d) => d.pageContent).join("\n");
     }
   } catch (error) {
     console.error("Error retrieving answer:", error);

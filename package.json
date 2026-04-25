@@ -10,11 +10,12 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@langchain/community": "^1.1.27",
-    "@langchain/core": "^1.1.41",
-    "@langchain/google-genai": "^2.1.28",
+    "@langchain/classic": "^1.0.31",
+    "@langchain/community": "0.3.40",
+    "@langchain/core": "^0.3.80",
+    "@langchain/google-genai": "^0.1.8",
     "chromadb": "^3.4.3",
-    "langchain": "^1.3.4",
+    "langchain": "0.3.37",
     "next": "16.2.4",
     "pdf-parse": "^2.4.5",
     "react": "19.2.4",
@@ -34,5 +35,3 @@
     "pdf-parse": "$pdf-parse"
   }
 }
-
-

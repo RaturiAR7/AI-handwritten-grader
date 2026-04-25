@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
         ),
       })),
     );
-
     // Step 3 - grade
     const graded = await graderNode(ragResults, modelName);
 
