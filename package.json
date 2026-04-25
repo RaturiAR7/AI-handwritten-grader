@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@langchain/classic": "^1.0.31",
     "@langchain/community": "0.3.40",
     "@langchain/core": "^0.3.80",
     "@langchain/google-genai": "^0.1.8",
