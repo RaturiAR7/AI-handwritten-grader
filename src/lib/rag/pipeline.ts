@@ -5,33 +5,39 @@ import { embeddings } from "./embed";
 import { extractQA } from "./extractQA";
 
 export async function processAndStoreExam(examId: string, text: string) {
-  const qaPairs = extractQA(text);
-  let docs: Document[] = [];
-
-  if (qaPairs.length > 0) {
-    // Exact match Q/A pairs found
-    docs = qaPairs
-      .filter((item) => item.answer?.trim().length > 0)
-      .map(
-        (item) =>
-          new Document({
-            pageContent: item.answer.trim(),
-            metadata: { examId, questionId: item.questionId },
-          }),
-      );
-  } else {
-    // No exact Q/A pairs, fallback to chunking the whole document for semantic search
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
+  try {
+    let qaPairs = extractQA(text);
+    let docs: Document[] = [];
+    // console.log(qaPairs);
+    qaPairs=[]
+    if (qaPairs.length > 0) {
+      // Exact match Q/A pairs found
+      docs = qaPairs
+        .filter((item) => item.answer?.trim().length > 0)
+        .map(
+          (item) =>
+            new Document({
+              pageContent: item.answer.trim(),
+              metadata: { examId, questionId: item.questionId },
+            }),
+        );
+    } else {
+      // No exact Q/A pairs, fallback to chunking the whole document for semantic search
+      const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+      });
+      console.log("Fall Back Used");
+      docs = await splitter.createDocuments([text], [{ examId }]);
+      docs = docs.filter(d => d.pageContent.trim().length > 0);
+    }
+  
+    await Chroma.fromDocuments(docs, embeddings, {
+      collectionName: examId,
+      url: "http://localhost:8000",
+      collectionMetadata: { "hnsw:space": "cosine" },
     });
-    console.log("Fall Back Used");
-    docs = await splitter.createDocuments([text], [{ examId }]);
+  } catch (error) {
+    console.log(error);
   }
-
-  await Chroma.fromDocuments(docs, embeddings, {
-    collectionName: examId,
-    url: "http://localhost:8000",
-    collectionMetadata: { "hnsw:space": "cosine" },
-  });
 }

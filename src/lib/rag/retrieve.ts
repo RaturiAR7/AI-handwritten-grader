@@ -22,7 +22,9 @@ export async function getAnswerByQuestionId(
     }
 
     // 2. Fallback to semantic search if exact match fails
+    console.log("Used Fallback");
     const searchQuery = questionText.trim() || studentAnswer.trim();
+    console.log(searchQuery)
     if (searchQuery) {
       const queryEmbedding = await embeddings.embedQuery(searchQuery);
       const searchResult = await col.query({
