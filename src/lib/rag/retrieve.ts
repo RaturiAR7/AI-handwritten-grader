@@ -1,4 +1,5 @@
-import { getVectorStore } from "./pipeline";
+import { ChromaClient } from "chromadb";
+import { embedder } from "./embed";
 
 export async function getAnswerByQuestionId(
   examId: string,
@@ -7,27 +8,30 @@ export async function getAnswerByQuestionId(
   questionText: string = "",
 ) {
   try {
-    const vectorStore = getVectorStore(examId);
-
-    if (!vectorStore) {
-      throw new Error(`No vector store found for examId: ${examId}`);
-    }
+    const client = new ChromaClient({ host: "localhost", port: 8000 });
+    const collection = await client.getCollection({ name: examId });
 
     // 1. Try exact metadata match first
-    const allDocs = await vectorStore.similaritySearch("test", 100);
-    const exact = allDocs.find(
-      (d) => d.metadata.questionId === `Q${questionId}`,
-    );
-    if (exact) return exact.pageContent;
+    const result = await collection.get({
+      where: { questionId: `Q${questionId}` },
+    });
+
+    if (result.documents?.length > 0 && result.documents[0]) {
+      console.log("Exact match found for:", questionId);
+      return result.documents[0];
+    }
 
     // 2. Fallback to semantic search
-    console.log("Used semantic fallback");
+    console.log("Used semantic fallback for:", questionId);
     const searchQuery = questionText.trim() || studentAnswer.trim();
-    console.log("Search query:", searchQuery);
 
     if (searchQuery) {
-      const results = await vectorStore.similaritySearch(searchQuery, 2);
-      return results.map((d) => d.pageContent).join("\n");
+      const queryEmbedding = await embedder.embedQuery(searchQuery);
+      const searchResult = await collection.query({
+        queryEmbeddings: [queryEmbedding],
+        nResults: 2,
+      });
+      return searchResult.documents?.[0]?.join("\n") || null;
     }
   } catch (error) {
     console.error("Error retrieving answer:", error);
