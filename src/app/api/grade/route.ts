@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { visionNode } from "@/lib/evaluation/visionNode"
-import { getAnswerByQuestionId } from "@/lib/rag/retrieve";
-import { graderNode } from "@/lib/evaluation/graderNode";
+import { examGradingAgent } from "@/lib/agent/graph";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -17,35 +15,31 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const base64Images = await Promise.all(
+    // Convert images to base64
+    const imagesBase64 = await Promise.all(
       images.map(async (img) => {
         const bytes = await img.arrayBuffer();
         return Buffer.from(bytes).toString("base64");
-      })
+      }),
     );
 
-    // Step 1 - vision
-    const extracted = await visionNode(base64Images, modelName);
+    // Run the agentic graph
+    const finalState = await examGradingAgent.invoke({
+      examId,
+      imagesBase64,
+      modelName,
+    });
 
-    // Step 2 - fetch correct answers
-    const ragResults = await Promise.all(
-      extracted.map(async (item) => ({
-        questionId: item.questionId,
-        studentAnswer: item.studentAnswer,
-        questionText: item.questionText,
-        correctAnswer: await getAnswerByQuestionId(
-          examId,
-          item.questionId.replace("Q", ""),
-          item.studentAnswer,
-          item.questionText
-        ),
-      })),
+    // Surface any agent-level error
+    if (finalState.error) {
+      return NextResponse.json({ error: finalState.error }, { status: 500 });
+    }
+
+    const graded = finalState.gradedResults;
+    const totalScore = graded.reduce(
+      (sum: number, item: any) => sum + item.score,
+      0,
     );
-    // Step 3 - grade
-    const graded = await graderNode(ragResults, modelName);
-
-    // Step 4 - format final output
-    const totalScore = graded.reduce((sum, item) => sum + item.score, 0);
     const maxScore = graded.length * 10;
 
     return NextResponse.json({
@@ -56,9 +50,8 @@ export async function POST(req: NextRequest) {
       results: graded,
     });
   } catch (error: any) {
-    console.error("Grading API Error:", error);
-    
-    // Parse Google GenAI specific errors to be more human-readable
+    console.error("Grading Agent Error:", error);
+
     let errorMessage = "An unexpected error occurred during evaluation.";
     if (error.status === 404) {
       errorMessage = `The selected model (${modelName}) is not available or not supported by your API key.`;
@@ -66,9 +59,6 @@ export async function POST(req: NextRequest) {
       errorMessage = error.message;
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
