@@ -56,7 +56,10 @@ export async function processAndStoreExam(examId: string, text: string) {
     try {
       await client.deleteCollection({ name: examId });
     } catch (_) {}
-    const collection = await client.createCollection({ name: examId });
+    const collection = await client.createCollection({
+      name: examId,
+      embeddingFunction: undefined,
+    });
 
     await collection.add({
       ids: docs.map((_, i) => `${examId}-${i}`),
