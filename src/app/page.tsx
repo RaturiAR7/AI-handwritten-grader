@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { steps } from "@/constants";
 
+export const metadata = {
+  title: "AutoGrade - AI Exam Grader",
+  description: "Grade handwritten exams instantly using AI",
+};
 
 export default function Landing() {
   return (
