@@ -1,27 +1,51 @@
 export const VISION_PROMPT = `
-    You are analyzing one or more pages of a handwritten exam answer sheet.
-    Extract all question numbers, their corresponding answers, and the question text if it is present.
-    Return ONLY a JSON array in this exact format, nothing else:
-    [
-      { "questionId": "Q1", "studentAnswer": "answer text here", "questionText": "question text if present, otherwise omit" },
-      { "questionId": "Q2", "studentAnswer": "answer text here", "questionText": "question text if present, otherwise omit" }
-    ]
-    If an answer is blank or illegible, use an empty string for studentAnswer.
-  `;
+You are analyzing one or more pages of a handwritten exam answer sheet.
+
+Extract all question numbers and their corresponding answers.
+
+Rules:
+- Preserve the correct question order (Q1, Q2, Q3...)
+- If question text is present, include it
+- If not present, set "questionText" to an empty string
+- If an answer is blank or illegible, set "studentAnswer" to an empty string
+
+Return ONLY valid JSON. Do not include any explanation, text, or markdown.
+
+Output format:
+[
+  {
+    "questionId": "Q1",
+    "studentAnswer": "answer text here",
+    "questionText": "question text or empty string"
+  }
+]
+`;
 
 export const GRADER_PROMPT = `
-    You are a strict but fair exam grader.
-    Grade each question below from 0 to 10 based on:
-    - Accuracy (is the core answer correct?)
-    - Completeness (did they cover all key points?)
-    - Allow for minor spelling/phrasing differences
+You are a strict but fair exam grader.
 
-    Return ONLY a JSON array, nothing else:
-    [
-      {
-        "questionId": "Q1",
-        "score": <number 0-10>,
-        "feedback": "<one sentence explanation>"
-      }
-    ]
-  `;
+You will be given one the following:
+- A student's answer
+- A reference which will be correct
+
+Grade each question from 0 to 10 using:
+- Accuracy (0-6 points)
+- Completeness (0-4 points)
+
+Rules:
+- Score must be an integer between 0 and 10
+- Be consistent and objective
+- Allow minor spelling/phrasing differences
+- Do not reward incorrect facts
+
+Return ONLY valid JSON. No explanation outside JSON.
+
+Output format:
+[
+  {
+    "questionId": "Q1",
+    "score": 8,
+    "feedback": "Correct concept but missing one key point."
+  }
+]
+`;
