@@ -52,7 +52,10 @@ export async function processAndStoreExam(examId: string, text: string) {
     console.log("Vector dim:", embeddingVectors[0]?.length);
 
     // Store in ChromaDB
-    const client = new ChromaClient({ host: "localhost", port: 8000 });
+    const client = new ChromaClient({
+      host: process.env.CHROMA_HOST,
+      port: 8000,
+    });
     try {
       await client.deleteCollection({ name: examId });
     } catch (_) {}
