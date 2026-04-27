@@ -14,7 +14,14 @@ export async function visionNode(
   );
 
   try {
-    const model = genAI.getGenerativeModel({ model: state.modelName });
+    const model = genAI.getGenerativeModel({
+      model: state.modelName,
+      generationConfig: {
+        temperature: 0,
+        topP: 1,
+        maxOutputTokens: 2000,
+      },
+    });
 
     const imageParts = state.imagesBase64.map((base64) => ({
       inlineData: { mimeType: "image/jpeg", data: base64 },

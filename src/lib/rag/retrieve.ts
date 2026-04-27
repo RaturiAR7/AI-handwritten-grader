@@ -29,7 +29,7 @@ export async function getAnswerByQuestionId(
       const queryEmbedding = await embedder.embedQuery(searchQuery);
       const searchResult = await collection.query({
         queryEmbeddings: [queryEmbedding],
-        nResults: 2,
+        nResults: 2, //top_k=3
       });
       return searchResult.documents?.[0]?.join("\n") || null;
     }

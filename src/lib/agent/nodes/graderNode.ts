@@ -14,7 +14,14 @@ export async function graderNode(
   );
 
   try {
-    const model = genAI.getGenerativeModel({ model: state.modelName });
+    const model = genAI.getGenerativeModel({
+      model: state.modelName,
+      generationConfig: {
+        temperature: 0.2,
+        topP: 1,
+        maxOutputTokens: 1000,
+      },
+    });
 
     const context = state.ragResults
       .map(
