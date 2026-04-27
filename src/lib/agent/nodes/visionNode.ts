@@ -17,6 +17,7 @@ export async function visionNode(
     const model = genAI.getGenerativeModel({
       model: state.modelName,
       generationConfig: {
+        ///// Vision tasks require high precision
         temperature: 0,
         maxOutputTokens: 2000,
       },
@@ -28,6 +29,7 @@ export async function visionNode(
 
     const result = await model.generateContent([VISION_PROMPT, ...imageParts]);
     const text = result.response.text();
+    /// AI models often wrap JSON in Markdown code blocks (e.g., ```json ... ```). This Regex strips those markers so the string can be parsed.
     const cleaned = text.replace(/```json|```/g, "").trim();
     const extractedAnswers: ExtractedAnswer[] = JSON.parse(cleaned);
 

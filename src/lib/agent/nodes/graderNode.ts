@@ -17,6 +17,7 @@ export async function graderNode(
     const model = genAI.getGenerativeModel({
       model: state.modelName,
       generationConfig: {
+        //// 0.2 temperature allows the AI to craft feedback that sounds slightly more natural
         temperature: 0.2,
         maxOutputTokens: 1000,
       },
@@ -35,6 +36,7 @@ export async function graderNode(
 
     const result = await model.generateContent(`${GRADER_PROMPT}${context}`);
     const text = result.response.text();
+    /// AI models often wrap JSON in Markdown code blocks (e.g., ```json ... ```). This Regex strips those markers so the string can be parsed.
     const cleaned = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
 
