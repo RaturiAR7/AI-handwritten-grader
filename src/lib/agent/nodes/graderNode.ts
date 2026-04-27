@@ -18,7 +18,6 @@ export async function graderNode(
       model: state.modelName,
       generationConfig: {
         temperature: 0.2,
-        topP: 1,
         maxOutputTokens: 1000,
       },
     });

@@ -5,8 +5,9 @@ import {
   graderNodeParams,
 } from "@/constants/index";
 
+// define the shape of your state
 export const ExamGradingState = Annotation.Root({
-  // Input
+  // values you provide when you first start the agent
   examId: Annotation<string>(),
   imagesBase64: Annotation<string[]>(),
   modelName: Annotation<string>(),
@@ -14,6 +15,7 @@ export const ExamGradingState = Annotation.Root({
   // Vision node output
   extractedAnswers: Annotation<ExtractedAnswer[]>({
     default: () => [],
+    /// (_, next) => next means "Overwriting" current value
     reducer: (_, next) => next,
   }),
 

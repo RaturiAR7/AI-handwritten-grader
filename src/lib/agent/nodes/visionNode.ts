@@ -18,7 +18,6 @@ export async function visionNode(
       model: state.modelName,
       generationConfig: {
         temperature: 0,
-        topP: 1,
         maxOutputTokens: 2000,
       },
     });

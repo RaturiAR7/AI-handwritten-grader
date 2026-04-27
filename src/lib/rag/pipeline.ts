@@ -4,6 +4,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { embedder } from "./embed";
 import { extractQA } from "./extractQA";
 
+/// loops through a metadata object and strips out anything that would cause an error for chromadb
 function sanitizeMetadata(
   metadata: Record<string, any>,
 ): Record<string, string | number | boolean> {
@@ -26,7 +27,6 @@ export async function processAndStoreExam(examId: string, text: string) {
     let docs: Document[] = [];
 
     if (qaPairs.length > 0) {
-      console.log("Q/A pairs:", qaPairs.length);
       docs = qaPairs
         .filter((item) => item.answer?.trim().length > 0)
         .map(
@@ -57,17 +57,23 @@ export async function processAndStoreExam(examId: string, text: string) {
       port: 8000,
     });
     try {
+      //// Delete if folder exists
       await client.deleteCollection({ name: examId });
     } catch (_) {}
+    //// Creates a new "folder" (collection) in the database specifically for this exam.
+    /// Semantic Search
     const collection = await client.createCollection({
       name: examId,
       embeddingFunction: undefined,
+      metadata: { "hnsw:space": "cosine" },
     });
 
     await collection.add({
+      //// IDs: Unique strings to identify each chunk.
       ids: docs.map((_, i) => `${examId}-${i}`),
       embeddings: embeddingVectors,
       documents: finalDocs,
+      //// metadata for search based on examid
       metadatas: docs.map((d) => sanitizeMetadata(d.metadata)),
     });
 

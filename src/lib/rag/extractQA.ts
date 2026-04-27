@@ -4,6 +4,7 @@ export function extractQA(text: string) {
   const qa: { questionId: string; answer: string }[] = [];
 
   for (const line of lines) {
+    ////like->  1), 1., or 1:
     const match = line.match(/^(\d+)[\)\.\:]\s*(.*)/);
 
     if (match) {

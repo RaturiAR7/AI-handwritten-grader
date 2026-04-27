@@ -5,6 +5,7 @@ import { retrievalNode } from "./nodes/retrievalNode";
 import { graderNode } from "./nodes/graderNode";
 
 // --- Conditional edge: abort if a node set an error ---
+// looks at the current state
 function shouldContinue(state: ExamGradingStateType): "continue" | "abort" {
   return state.error ? "abort" : "continue";
 }
@@ -32,5 +33,5 @@ const workflow = new StateGraph(ExamGradingState)
 
   // Grading is the final step
   .addEdge("grader", END);
-
+// Compiles the whole workflow
 export const examGradingAgent = workflow.compile();

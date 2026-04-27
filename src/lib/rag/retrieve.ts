@@ -12,6 +12,7 @@ export async function getAnswerByQuestionId(
       host: process.env.CHROMA_HOST,
       port: 8000,
     });
+    /// open the existing "folder" (collection)
     const collection = await client.getCollection({ name: examId });
 
     // 1. Try exact metadata match first
@@ -29,10 +30,11 @@ export async function getAnswerByQuestionId(
     const searchQuery = questionText.trim() || studentAnswer.trim();
 
     if (searchQuery) {
+      /// Convert query to vector
       const queryEmbedding = await embedder.embedQuery(searchQuery);
       const searchResult = await collection.query({
         queryEmbeddings: [queryEmbedding],
-        nResults: 2, //top_k=3
+        nResults: 2, //top_k=2
       });
       return searchResult.documents?.[0]?.join("\n") || null;
     }
