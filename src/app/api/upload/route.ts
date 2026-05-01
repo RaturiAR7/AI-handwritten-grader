@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import { extractTextFromPDF } from "@/lib/rag/pdf";
 import { processAndStoreExam } from "@/lib/rag/pipeline";
@@ -30,6 +32,11 @@ export async function POST(req: NextRequest) {
       text: extractedText.text,
     });
   } catch (error) {
-    return NextResponse.json({ error: error }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
   }
 }
