@@ -9,10 +9,10 @@ export async function getAnswerByQuestionId(
 ) {
   try {
     const client = new ChromaClient({
-      host: process.env.CHROMA_HOST,
-      port: 8000,
+      host: process.env.CHROMA_DB_URL || "localhost",
+      port: 443, /// Use 8000 for localhost
+      ssl: true,
     });
-    /// open the existing "folder" (collection)
     const collection = await client.getCollection({ name: examId });
 
     // 1. Try exact metadata match first

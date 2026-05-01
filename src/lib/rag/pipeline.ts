@@ -50,11 +50,13 @@ export async function processAndStoreExam(examId: string, text: string) {
     const embeddingVectors = await embedder.embedDocuments(finalDocs);
     console.log("Vector count:", embeddingVectors.length);
     console.log("Vector dim:", embeddingVectors[0]?.length);
+    console.log("CHROMA_URL:", process.env.CHROMA_DB_URL);
 
     // Store in ChromaDB
     const client = new ChromaClient({
-      host: process.env.CHROMA_HOST,
-      port: 8000,
+      host: process.env.CHROMA_DB_URL || "localhost",
+      port: 443, /// Use 8000 for localhost
+      ssl: true,
     });
     try {
       //// Delete if folder exists
@@ -67,7 +69,6 @@ export async function processAndStoreExam(examId: string, text: string) {
       embeddingFunction: undefined,
       metadata: { "hnsw:space": "cosine" },
     });
-
     await collection.add({
       //// IDs: Unique strings to identify each chunk.
       ids: docs.map((_, i) => `${examId}-${i}`),
