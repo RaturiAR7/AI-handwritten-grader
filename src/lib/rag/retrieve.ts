@@ -8,7 +8,11 @@ export async function getAnswerByQuestionId(
   questionText: string = "",
 ) {
   try {
-    const client = new ChromaClient({ host: "localhost", port: 8000 });
+    const client = new ChromaClient({
+      host: process.env.CHROMA_DB_URL || "localhost",
+      port: 443, /// Use 8000 for localhost
+      ssl: true,
+    });
     const collection = await client.getCollection({ name: examId });
 
     // 1. Try exact metadata match first

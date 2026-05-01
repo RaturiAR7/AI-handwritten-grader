@@ -50,9 +50,14 @@ export async function processAndStoreExam(examId: string, text: string) {
     const embeddingVectors = await embedder.embedDocuments(finalDocs);
     console.log("Vector count:", embeddingVectors.length);
     console.log("Vector dim:", embeddingVectors[0]?.length);
+    console.log("CHROMA_URL:", process.env.CHROMA_DB_URL);
 
     // Store in ChromaDB
-    const client = new ChromaClient({ host: "localhost", port: 8000 });
+    const client = new ChromaClient({
+      host: process.env.CHROMA_DB_URL || "localhost",
+      port: 443, /// Use 8000 for localhost
+      ssl: true,
+    });
     try {
       await client.deleteCollection({ name: examId });
     } catch (_) {}
@@ -60,7 +65,6 @@ export async function processAndStoreExam(examId: string, text: string) {
       name: examId,
       embeddingFunction: undefined,
     });
-
     await collection.add({
       ids: docs.map((_, i) => `${examId}-${i}`),
       embeddings: embeddingVectors,
